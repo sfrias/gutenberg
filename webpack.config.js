@@ -11,6 +11,10 @@ const { basename } = require( 'path' );
  */
 const CustomTemplatedPathPlugin = require( '@wordpress/custom-templated-path-webpack-plugin' );
 
+const { NODE_ENV = 'development' } = process.env;
+const isProductionEnv = ( NODE_ENV === 'production' );
+const isTestEnv = ( NODE_ENV === 'test' );
+
 // Main CSS loader for everything but blocks..
 const mainCSSExtractTextPlugin = new ExtractTextPlugin( {
 	filename: './[basename]/build/style.css',
@@ -97,6 +101,8 @@ const externals = {
 	tinymce: 'tinymce',
 	moment: 'moment',
 	jquery: 'jQuery',
+	lodash: 'lodash',
+	'lodash-es': 'lodash',
 };
 
 [
@@ -110,7 +116,7 @@ const externals = {
 } );
 
 const config = {
-	mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+	mode: isProductionEnv ? 'production' : 'development',
 
 	entry: Object.assign(
 		entryPointNames.reduce( ( memo, path ) => {
@@ -135,6 +141,9 @@ const config = {
 			__dirname,
 			'node_modules',
 		],
+		alias: {
+			'lodash-es': 'lodash',
+		},
 	},
 	module: {
 		rules: [
@@ -145,7 +154,40 @@ const config = {
 			{
 				test: /\.js$/,
 				exclude: /node_modules/,
-				use: 'babel-loader',
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: [
+							! isTestEnv && [ require( 'babel-preset-env' ), {
+								modules: false,
+								targets: {
+									browsers: [ 'extends @wordpress/browserslist-config' ],
+								},
+							} ],
+							isTestEnv && [ require( 'babel-preset-env' ) ],
+						].filter( Boolean ),
+						plugins: [
+							require( 'babel-plugin-transform-object-rest-spread' ),
+							[ require( 'babel-plugin-transform-react-jsx' ), {
+								pragma: 'wp.element.createElement',
+							} ],
+							! isTestEnv && require( 'babel-plugin-transform-runtime' ),
+							'transform-async-generator-functions',
+						].filter( Boolean ),
+						env: {
+							production: {
+								plugins: [
+									[
+										require( './i18n/babel-plugin' ),
+										{
+											output: 'languages/gutenberg.pot',
+										},
+									],
+								],
+							},
+						},
+					},
+				},
 			},
 			{
 				test: /style\.s?css$/,
