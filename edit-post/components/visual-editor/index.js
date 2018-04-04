@@ -34,7 +34,7 @@ function VisualEditor( { hasFixedToolbar, isLargeViewport } ) {
 						showContextualToolbar={ ! isLargeViewport || ! hasFixedToolbar }
 						renderBlockMenu={ ( { children, onClose } ) => (
 							<Fragment>
-								<BlockInspectorButton onClick={ onClose } />
+								<BlockInspectorButton onClick={ onClose } ariaRole="menuitem" />
 								{ children }
 							</Fragment>
 						) }
