@@ -33,7 +33,7 @@ export {
 	getBlockTypes,
 	getBlockSupport,
 	hasBlockSupport,
-	isReusableBlock,
+	isSharedBlock,
 } from './registration';
 export {
 	isUnmodifiedDefaultBlock,

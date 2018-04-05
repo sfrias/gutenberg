@@ -10,27 +10,27 @@ import { noop } from 'lodash';
 import { Fragment } from '@wordpress/element';
 import { IconButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { isReusableBlock } from '@wordpress/blocks';
+import { isSharedBlock } from '@wordpress/blocks';
 
 /**
  * Internal dependencies
  */
-import { getBlock, getReusableBlock } from '../../store/selectors';
-import { convertBlockToStatic, convertBlockToReusable, deleteReusableBlock } from '../../store/actions';
+import { getBlock, getSharedBlock } from '../../store/selectors';
+import { convertBlockToStatic, convertBlockToShared, deleteSharedBlock } from '../../store/actions';
 
-export function ReusableBlockSettings( { reusableBlock, onConvertToStatic, onConvertToReusable, onDelete } ) {
+export function SharedBlockSettings( { sharedBlock, onConvertToStatic, onConvertToShared, onDelete } ) {
 	return (
 		<Fragment>
-			{ ! reusableBlock && (
+			{ ! sharedBlock && (
 				<IconButton
 					className="editor-block-settings-menu__control"
 					icon="controls-repeat"
-					onClick={ onConvertToReusable }
+					onClick={ onConvertToShared }
 				>
 					{ __( 'Convert to Shared Block' ) }
 				</IconButton>
 			) }
-			{ reusableBlock && (
+			{ sharedBlock && (
 				<div className="editor-block-settings-menu__section">
 					<IconButton
 						className="editor-block-settings-menu__control"
@@ -42,8 +42,8 @@ export function ReusableBlockSettings( { reusableBlock, onConvertToStatic, onCon
 					<IconButton
 						className="editor-block-settings-menu__control"
 						icon="no"
-						disabled={ reusableBlock.isTemporary }
-						onClick={ () => onDelete( reusableBlock.id ) }
+						disabled={ sharedBlock.isTemporary }
+						onClick={ () => onDelete( sharedBlock.id ) }
 					>
 						{ __( 'Delete Shared Block' ) }
 					</IconButton>
@@ -57,7 +57,7 @@ export default connect(
 	( state, { uid } ) => {
 		const block = getBlock( state, uid );
 		return {
-			reusableBlock: isReusableBlock( block ) ? getReusableBlock( state, block.attributes.ref ) : null,
+			sharedBlock: isSharedBlock( block ) ? getSharedBlock( state, block.attributes.ref ) : null,
 		};
 	},
 	( dispatch, { uid, onToggle = noop } ) => ( {
@@ -65,8 +65,8 @@ export default connect(
 			dispatch( convertBlockToStatic( uid ) );
 			onToggle();
 		},
-		onConvertToReusable() {
-			dispatch( convertBlockToReusable( uid ) );
+		onConvertToShared() {
+			dispatch( convertBlockToShared( uid ) );
 			onToggle();
 		},
 		onDelete( id ) {
@@ -78,9 +78,9 @@ export default connect(
 			) );
 
 			if ( hasConfirmed ) {
-				dispatch( deleteReusableBlock( id ) );
+				dispatch( deleteSharedBlock( id ) );
 				onToggle();
 			}
 		},
 	} )
-)( ReusableBlockSettings );
+)( SharedBlockSettings );
